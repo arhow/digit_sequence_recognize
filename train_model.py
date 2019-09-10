@@ -3,6 +3,7 @@ import time
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import LabelBinarizer
+from imgaug import augmenters as iaa
 from digit_sequence_recognize.utilities.array_saver import save_array, load_array
 from digit_sequence_recognize.train_model.model import Model
 
@@ -22,6 +23,7 @@ def get_command_line_arguments():
     parser.set_defaults(epochs=10)  #
     parser.set_defaults(batch_size=50)  #
     parser.set_defaults(fit_verbose=1)  #
+    parser.set_defaults(augment_times=5)  #
 
     parser.add_option('--save_path', dest='save_path')
     parser.add_option('--train_inputs', dest='train_inputs')
@@ -36,6 +38,8 @@ def get_command_line_arguments():
     parser.add_option('--epochs', dest='epochs')
     parser.add_option('--batch_size', dest='batch_size')
     parser.add_option('--fit_verbose', dest='fit_verbose')
+    parser.add_option('--augment_times', dest='augment_times')
+
 
 
     (options, args) = parser.parse_args()
@@ -43,7 +47,7 @@ def get_command_line_arguments():
     return options
 
 
-def run(save_path, train_inputs, train_labels, validation_inputs, validation_labels, test_inputs, test_labels, image_width, image_height, seq_len, epochs, batch_size, fit_verbose):
+def run(save_path, train_inputs, train_labels, validation_inputs, validation_labels, test_inputs, test_labels, image_width, image_height, seq_len, epochs, batch_size, fit_verbose, augment_times):
     '''
 
     :param save_path:
@@ -59,6 +63,7 @@ def run(save_path, train_inputs, train_labels, validation_inputs, validation_lab
     :param epochs:
     :param batch_size:
     :param fit_verbose:
+    :param augment_times:
     :return:
     '''
 
@@ -69,6 +74,27 @@ def run(save_path, train_inputs, train_labels, validation_inputs, validation_lab
     validation_labels = load_array(f'{save_path}/{validation_labels}')
     test_inputs = load_array(f'{save_path}/{test_inputs}')
     test_labels = load_array(f'{save_path}/{test_labels}')
+
+    seq = iaa.Sequential([
+        iaa.Affine(rotate=(-5, 5)),
+        iaa.AdditiveGaussianNoise(scale=(30, 90)),
+        iaa.Crop(percent=(0, 0.4))
+    ], random_order=True)
+
+    if augment_times > 0:
+        auged_train_inputs = []
+        auged_train_labels = []
+        train_inputs_shape = train_inputs.shape
+        train_labels_shape = train_labels.shape
+        for i in range(train_inputs.shape[0]):
+            image = train_inputs[i]
+            auged_train_inputs.append([seq.augment_image(image) for _ in range(augment_times)])
+            auged_train_labels.append([train_labels[i] for _ in range(augment_times)])
+        auged_train_inputs = np.array(auged_train_inputs)
+        auged_train_labels = np.array(auged_train_labels)
+        train_inputs = auged_train_inputs.reshape(-1, train_inputs_shape[1], train_inputs_shape[2])
+        train_labels = auged_train_labels.reshape(-1, train_labels_shape[1])
+
 
     sklb = LabelBinarizer()
     sklb.fit(np.unique(train_labels.reshape(-1,1)))
@@ -103,6 +129,7 @@ def main():
         'epochs':int(cla.epochs),
         'batch_size':int(cla.batch_size),
         'fit_verbose':int(cla.fit_verbose),
+        'augment_times':int(cla.augment_times),
     }
     try:
         print(param)

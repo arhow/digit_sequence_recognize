@@ -34,6 +34,7 @@ setup(
         'tensorflow',
         'bcolz',
         'Pillow',
+        'imgaug'
     ],
 
     classifiers=[
