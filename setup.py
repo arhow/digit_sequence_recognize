@@ -34,6 +34,7 @@ setup(
         'tensorflow',
         'bcolz',
         'Pillow',
+        'setuptools'
     ],
 
     classifiers=[
