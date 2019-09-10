@@ -33,7 +33,7 @@ setup(
         'scikit-learn',
         'tensorflow',
         'bcolz',
-        'PIL',
+        'Pillow',
     ],
 
     classifiers=[
