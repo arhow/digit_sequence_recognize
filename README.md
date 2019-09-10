@@ -24,7 +24,7 @@ python3 generate_digit_sequence_dataset.py --graph_input_array_file_name validat
 python3 generate_digit_sequence_dataset.py --graph_input_array_file_name test_inputs --graph_labels_array_file_name test_labels --samples 2000
 
 --train model
-python3 train_model.py
+python3 train_model.py --epochs 500
 
 --check train history
 vi fit_history.csv
