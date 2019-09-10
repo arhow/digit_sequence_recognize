@@ -1,5 +1,7 @@
 import optparse
 import time
+from imgaug import augmenters as iaa
+import numpy as np
 from digit_sequence_recognize.digit_sequence_generator.mnist_sequence_api import MNIST_SEQUENCE_API
 from digit_sequence_recognize.utilities.array_saver import load_array, save_array
 
@@ -20,6 +22,7 @@ def get_command_line_arguments():
     parser.set_defaults(graph_input_array_file_name='inputs.bc')  #
     parser.set_defaults(graph_labels_array_file_name='labels.bc')  #
     parser.set_defaults(is_generate_all_digit_sequence_image=0)  #
+    parser.set_defaults(is_generate_augment_image=0)  #
 
     parser.add_option('--save_path', dest='save_path')
     parser.add_option('--name_img', dest='name_img')
@@ -35,6 +38,7 @@ def get_command_line_arguments():
     parser.add_option('--graph_input_array_file_name', dest='graph_input_array_file_name')
     parser.add_option('--graph_labels_array_file_name', dest='graph_labels_array_file_name')
     parser.add_option('--is_generate_all_digit_sequence_image', dest='is_generate_all_digit_sequence_image')
+    parser.add_option('--is_generate_augment_image', dest='is_generate_augment_image')
 
 
     (options, args) = parser.parse_args()
@@ -44,7 +48,7 @@ def get_command_line_arguments():
 
 def run(save_path, name_img, name_lbl, samples, seq_len, min_spacing, max_spacing,
         image_width, image_height, graph_input_array_file_name, graph_labels_array_file_name,
-        is_generate_all_digit_sequence_image):
+        is_generate_all_digit_sequence_image, is_generate_augment_image):
     '''
 
     :param save_path:
@@ -59,6 +63,7 @@ def run(save_path, name_img, name_lbl, samples, seq_len, min_spacing, max_spacin
     :param graph_input_array_file_name:
     :param graph_labels_array_file_name:
     :param is_generate_all_digit_sequence_image:
+    :param is_generate_augment_image:
     :return:
     '''
 
@@ -69,6 +74,24 @@ def run(save_path, name_img, name_lbl, samples, seq_len, min_spacing, max_spacin
     save_array(labels, f'{save_path}/{graph_labels_array_file_name}')
     if is_generate_all_digit_sequence_image:
         api_object.save_image(inputs.reshape(-1,inputs.shape[-1]), range(10))
+
+    if is_generate_augment_image:
+        seq = iaa.Sequential([
+            # iaa.Affine(rotate=(-5, 5)),
+            iaa.AdditiveGaussianNoise(scale=(30, 90)),
+            iaa.Crop(percent=(0, 0.05))
+        ], random_order=True)
+
+        augment_times = 5
+        auged_train_inputs = []
+        train_inputs_shape = inputs.shape
+        for i in range(inputs.shape[0]):
+            image = inputs[i]
+            auged_train_inputs.append([seq.augment_image(image) for _ in range(augment_times)])
+        auged_train_inputs = np.array(auged_train_inputs)
+        train_inputs = auged_train_inputs.reshape(-1, train_inputs_shape[1], train_inputs_shape[2])
+        api_object.save_image(train_inputs.reshape(-1, inputs.shape[-1]), range(11))
+
     return
 
 

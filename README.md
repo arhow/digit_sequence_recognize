@@ -49,6 +49,7 @@ vi fit_history.csv
     parser.set_defaults(graph_input_array_file_name='inputs.bc')  #
     parser.set_defaults(graph_labels_array_file_name='labels.bc')  #
     parser.set_defaults(is_generate_all_digit_sequence_image=0)  #
+    parser.set_defaults(is_generate_augment_image=0)  #
 
 --train_model.py
 
@@ -65,5 +66,5 @@ vi fit_history.csv
     parser.set_defaults(epochs=10)  #
     parser.set_defaults(batch_size=50)  #
     parser.set_defaults(fit_verbose=1)  #
-    parser.set_defaults(augment_times=5)  #
+    parser.set_defaults(augment_times=5)  #-1 means no augment
 ```

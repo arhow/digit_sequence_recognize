@@ -23,7 +23,7 @@ def get_command_line_arguments():
     parser.set_defaults(epochs=10)  #
     parser.set_defaults(batch_size=50)  #
     parser.set_defaults(fit_verbose=1)  #
-    parser.set_defaults(augment_times=5)  #
+    parser.set_defaults(augment_times=5)  #-1 means no augment
 
     parser.add_option('--save_path', dest='save_path')
     parser.add_option('--train_inputs', dest='train_inputs')
@@ -76,9 +76,9 @@ def run(save_path, train_inputs, train_labels, validation_inputs, validation_lab
     test_labels = load_array(f'{save_path}/{test_labels}')
 
     seq = iaa.Sequential([
-        iaa.Affine(rotate=(-5, 5)),
+        # iaa.Affine(rotate=(-5, 5)),
         iaa.AdditiveGaussianNoise(scale=(30, 90)),
-        iaa.Crop(percent=(0, 0.4))
+        iaa.Crop(percent=(0, 0.05))
     ], random_order=True)
 
     if augment_times > 0:
