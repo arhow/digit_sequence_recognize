@@ -65,4 +65,5 @@ vi fit_history.csv
     parser.set_defaults(epochs=10)  #
     parser.set_defaults(batch_size=50)  #
     parser.set_defaults(fit_verbose=1)  #
+    parser.set_defaults(augment_times=5)  #
 ```
