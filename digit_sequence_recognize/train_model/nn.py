@@ -1,4 +1,5 @@
 import tensorflow as tf
+from digit_sequence_recognize.train_model.modules import multihead_attention
 
 '''
 Recurrent model for sequence recognition with dropout
@@ -57,7 +58,17 @@ class SequenceReshapedConvolutionBatchnorm:
                     output, state = gru(reshaped, state)
                     number_logits = self._fully_connected(output, 576, 10)
                     logits.append(number_logits)
-            return tf.stack(logits, axis=1)
+            output = tf.stack(logits, axis=1)
+            output = multihead_attention(queries=output,
+                                      keys=output,
+                                      values=output,
+                                      num_heads=5,
+                                      training=is_training,
+                                      causality=True,
+                                      scope="self_attention")
+
+
+            return output
 
     def loss(self, logits, labels):
         with tf.name_scope("loss"):
@@ -109,6 +120,10 @@ class SequenceReshapedConvolutionBatchnorm:
     def _max_pooling(self, input, ksize, strides, name="max_pooling"):
         with tf.name_scope(name):
             return tf.nn.max_pool(input, ksize, strides, padding="SAME")
+
+    def _avg_pooling(self, input, ksize, strides, name="avg_pooling"):
+        with tf.name_scope(name):
+            return tf.nn.avg_pool(input, ksize, strides, padding="SAME")
 
     def _relu(self, input, name="relu"):
         with tf.name_scope(name):
