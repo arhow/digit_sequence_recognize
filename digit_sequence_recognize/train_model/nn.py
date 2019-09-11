@@ -56,18 +56,19 @@ class SequenceReshapedConvolutionBatchnorm:
                 for i in range(5):
                     if i > 0: tf.get_variable_scope().reuse_variables()
                     output, state = gru(reshaped, state)
-                    number_logits = self._fully_connected(output, 576, 10)
-                    logits.append(number_logits)
+                    # number_logits = self._fully_connected(output, 576, 10)
+                    logits.append(output)
             output = tf.stack(logits, axis=1)
             output = multihead_attention(queries=output,
                                       keys=output,
                                       values=output,
-                                      num_heads=5,
+                                      num_heads=8,
                                       training=is_training,
                                       causality=True,
                                       scope="self_attention")
 
-
+            output = self._fully_connected(tf.reshape(output,[-1,576]), 576, 10)
+            output = tf.reshape(output, [-1, 5, 10])
             return output
 
     def loss(self, logits, labels):
